@@ -1,0 +1,269 @@
+﻿<h:MainWindowBase x:Class="HeBianGu.App.SocketTool.ShellWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HeBianGu.App.SocketTool"
+        xmlns:h="QQ:908293466" xmlns:system="clr-namespace:System;assembly=mscorlib" xmlns:text="clr-namespace:System.Text;assembly=mscorlib"
+                  DataContext="{Binding Source={StaticResource S.DataSource.Locator},Path=ShellViewModel}" 
+        Style="{DynamicResource S.Window.Main.Default}"
+        NotifyIconSource="/HeBianGu.General.WpfControlLib;component/Resources/iBook.ico"
+        mc:Ignorable="d" Title="SocketTool" Height="800" Width="1100" CaptionHeight="50">
+    <Grid>
+        <Grid.Resources>
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Command" Value="{Binding RelayCommand}"/>
+            </Style>
+
+            <DataTemplate DataType="{x:Type text:Encoding}">
+                <TextBlock Text="{Binding BodyName}" ToolTip="{Binding EncodingName}"/>
+            </DataTemplate>
+
+            <!--<Style TargetType="GroupBox" BasedOn="{StaticResource {x:Type GroupBox}}">
+                <Setter Property="Padding" Value="5"/>
+                <Setter Property="mar" Value="5"/>
+            </Style>-->
+
+            <DataTemplate DataType="{x:Type local:Message}">
+                <StackPanel Margin="0,2">
+                    <StackPanel Orientation="Horizontal" Grid.ColumnSpan="12">
+                        
+                        <TextBlock Text="{Binding Title}" FontWeight="Bold" Foreground="{DynamicResource S.Brush.Accent}"/>
+                        <TextBlock Text="{Binding Time}" Margin="10,0" Foreground="{DynamicResource S.Brush.Accent}"/>
+                        
+                        <Button Content="查看详情" Style="{DynamicResource S.Button.Transparent}"
+                                Command="{Binding RelayCommand}" CommandParameter="Button.Click.ShowDetial"/> 
+                        
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Grid.ColumnSpan="12" Margin="5,4,0,0">
+                        <TextBlock Text="{Binding Data}" ToolTip="{Binding Tip}"/>
+                    </StackPanel>
+                </StackPanel>
+            </DataTemplate>
+            
+        </Grid.Resources>
+        <TabControl ItemContainerStyle="{DynamicResource S.TabItem.Line.Default}" TabStripPlacement="Top">
+            <TabItem Header="Tcp Server">
+                <DockPanel>
+                    <h:PropertyGrid SelectObject="{Binding Server.ServerParam}" Width="300" Padding="5" Title="参数配置" DockPanel.Dock="Left" VerticalAlignment="Stretch" >
+                        <h:PropertyGrid.BottomContent>
+                            <h:Row Margin="10,6">
+                                <DockPanel HorizontalAlignment="Center"  Grid.ColumnSpan="12">
+                                    <Button Content="开始监听" h:Cattach.IsBuzy="{Binding Server.IsRunning}" h:Cattach.BuzyText="正在监听" Margin="0,0,10,0" Command="{Binding Server.RelayCommand}" CommandParameter="Button.Click.ServerStart"/>
+                                    <Button Content="停止监听" IsEnabled="{Binding Server.IsRunning}" 
+                                            Command="{Binding Server.RelayCommand}" CommandParameter="Button.Click.ServerStop" />
+                                </DockPanel>
+                            </h:Row>
+                        </h:PropertyGrid.BottomContent>
+                    </h:PropertyGrid>
+
+                    <GroupBox Header="已连接客户端列表" Width="250" Padding="5" DockPanel.Dock="Right">
+                        <ListBox ItemsSource="{Binding Server.ConnectClients}" SelectedItem="{Binding Server.SelectedClient}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel>
+                                        <TextBlock Text="EndPoint: "/>
+                                        <TextBlock Text="{Binding LocalEndPoint}"/>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </GroupBox>
+
+                    <GroupBox Header="发送消息" DockPanel.Dock="Bottom">
+                        <h:Row>
+                            <TextBox Text="{Binding Server.ServerText}" h:Cattach.Label="消息" Style="{DynamicResource S.TextBox.LabelClear}" Grid.Column="0" Grid.ColumnSpan="8"/>
+                            <Button Content="发送" Grid.Column="11" Width="Auto" Margin="2,0" Command="{Binding Server.RelayCommand}"  CommandParameter="Button.Click.ServerSend"/>
+                            <ComboBox ItemsSource="{Binding Encodings}" SelectedItem="{Binding Server.EncodingSend}" Grid.Column="8" Grid.ColumnSpan="3"/>
+                        </h:Row>
+                    </GroupBox> 
+                    
+                    <GroupBox Header="接收消息">
+                        <DockPanel>
+                            <ListBox Style="{DynamicResource S.ListBox.WrapPanelSelecter.Default}" 
+                                         SelectedItem="{Binding Server.Encoding}" 
+                                         ItemsSource="{Binding Encodings}"
+                                         DockPanel.Dock="Bottom">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding BodyName}" ToolTip="{Binding EncodingName}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <ScrollViewer>
+                                <ItemsControl ItemsSource="{Binding Server.ServerMessages}"/>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </GroupBox>
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="Tcp Client">
+                <DockPanel>
+                    <h:PropertyGrid SelectObject="{Binding Client.TargetParam}" Width="300" Padding="5" Title="参数配置" DockPanel.Dock="Left" VerticalAlignment="Stretch">
+                        <h:PropertyGrid.BottomContent>
+                            <h:Row Margin="10,6">
+                                <DockPanel HorizontalAlignment="Center"  Grid.ColumnSpan="12">
+                                    <Button Content="开始连接" Margin="10,0" h:Cattach.IsBuzy="{Binding Client.IsRunning}" h:Cattach.BuzyText="已连接" Command="{Binding Client.RelayCommand}"  CommandParameter="Button.Click.ClientStart"/>
+                                    <Button Content="断开连接" IsEnabled="{Binding Client.IsRunning}" Command="{Binding Client.RelayCommand}" CommandParameter="Button.Click.ClientStop"/>
+                                </DockPanel>
+                            </h:Row>
+                        </h:PropertyGrid.BottomContent>
+                    </h:PropertyGrid>
+
+                    <GroupBox Header="发送消息" DockPanel.Dock="Bottom">
+                        <StackPanel>
+                            <h:Row>
+                                <TextBox Text="{Binding Client.PackageCount}" Grid.Column="0" Grid.ColumnSpan="5" h:Cattach.Label="每包大小" Style="{DynamicResource S.TextBox.LabelClear}"/>
+                                <TextBox Text="{Binding Client.SpanTime}" Grid.Column="5" Grid.ColumnSpan="5" h:Cattach.Label="每包间隔" Style="{DynamicResource S.TextBox.LabelClear}"/>
+
+                                <ComboBox ItemsSource="{Binding Encodings}" Margin="2,0" Grid.Column="10" Grid.ColumnSpan="2" SelectedItem="{Binding Client.EncodingSend}"/>
+                            </h:Row>
+
+                            <h:Row>
+                                <TextBox Text="{Binding Client.ClientText}" Grid.Column="0" h:Cattach.Label="消息" Style="{DynamicResource S.TextBox.LabelClear}" Grid.ColumnSpan="10"/>
+                                <Button Content="发送" Grid.Column="10" Grid.ColumnSpan="2" Width="Auto"  Margin="2,0"  Command="{Binding Client.RelayCommand}" CommandParameter="Button.Click.ClientSend"/>
+                            </h:Row>
+                        </StackPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="接收消息">
+                        <DockPanel>
+                            <ListBox Style="{DynamicResource S.ListBox.WrapPanelSelecter.Default}" 
+                                         SelectedItem="{Binding Client.Encoding}" 
+                                         ItemsSource="{Binding Encodings}"
+                                         DockPanel.Dock="Bottom">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding BodyName}" ToolTip="{Binding EncodingName}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <ScrollViewer>
+                                <ItemsControl ItemsSource="{Binding Client.ClientMessages}"/>
+                            </ScrollViewer>
+                        </DockPanel>
+
+                    </GroupBox>
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="Udp">
+                <DockPanel>
+                    <h:PropertyGrid SelectObject="{Binding UdpClient.LocalParam}" Width="300" Padding="5" Title="本地配置" DockPanel.Dock="Left" VerticalAlignment="Stretch">
+                        <h:PropertyGrid.BottomContent>
+                            <h:Row Margin="10,6">
+                                <DockPanel HorizontalAlignment="Center"  Grid.ColumnSpan="12">
+                                    <Button Content="开始监听" h:Cattach.IsBuzy="{Binding UdpClient.IsRunning}" h:Cattach.BuzyText="正在监听" Margin="0,0,10,0" 
+                                            Command="{Binding UdpClient.RelayCommand}" 
+                                            CommandParameter="Button.Click.ServerStart"/>
+                                    <Button Content="停止监听" IsEnabled="{Binding UdpClient.IsRunning}" 
+                                            Command="{Binding UdpClient.RelayCommand}" 
+                                            CommandParameter="Button.Click.ServerStop" />
+                                </DockPanel>
+                            </h:Row>
+                        </h:PropertyGrid.BottomContent>
+                    </h:PropertyGrid>
+
+                    <DockPanel>
+                        <h:PropertyGrid SelectObject="{Binding UdpClient.TargetParam}" IsEnabled="{Binding UdpClient.IsRunning}" Padding="5" Title="目标配置" DockPanel.Dock="Bottom" VerticalAlignment="Stretch">
+                            <h:PropertyGrid.BottomContent>
+                                <h:Row>
+                                    <TextBox Text="{Binding UdpClient.ClientText}" Grid.Column="0" h:Cattach.Label="消息" Style="{DynamicResource S.TextBox.LabelClear}" Grid.ColumnSpan="6"/>
+
+                                    <TextBox h:Cattach.Label="发送次数" Text="{Binding UdpClient.Count}"  Grid.Column="6" Grid.ColumnSpan="3"  Style="{DynamicResource S.TextBox.Label}"/>
+
+                                    <Button Content="发送" Grid.Column="11" Width="Auto" Margin="2,0"  Command="{Binding UdpClient.RelayCommand}" CommandParameter="Button.Click.ClientSend"/>
+
+                                    <ComboBox ItemsSource="{Binding Encodings}" SelectedItem="{Binding UdpClient.EncodingSend}" Grid.Column="9" Grid.ColumnSpan="2" Margin="2,0"/>
+
+                                </h:Row>
+                            </h:PropertyGrid.BottomContent>
+                        </h:PropertyGrid>
+
+                        <GroupBox Header="接收数据">
+                            <DockPanel>
+                                <ListBox Style="{DynamicResource S.ListBox.WrapPanelSelecter.Default}" 
+                                         SelectedItem="{Binding UdpClient.Encoding}" 
+                                         ItemsSource="{Binding Encodings}"
+                                         DockPanel.Dock="Bottom">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding BodyName}" ToolTip="{Binding EncodingName}"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+
+                                <ScrollViewer>
+                                    <ItemsControl ItemsSource="{Binding UdpClient.ClientMessages}"/>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </GroupBox>
+                    </DockPanel>
+                    
+                </DockPanel>
+            </TabItem>
+
+            <TabItem Header="Udp 组播">
+                <DockPanel > 
+                    <h:PropertyGrid SelectObject="{Binding UdpGroupClient.TargetParam}" Padding="5" Title="发送端" DockPanel.Dock="Bottom" VerticalAlignment="Stretch">
+                        <h:PropertyGrid.BottomContent>
+                            <h:Row Margin="5,0,5,5">
+                                <TextBox Text="{Binding UdpGroupClient.ClientText}" Grid.Column="0" h:Cattach.Label="消息" Style="{DynamicResource S.TextBox.LabelClear}" Grid.ColumnSpan="6"/>
+
+                                <TextBox h:Cattach.Label="发送次数" Text="{Binding UdpGroupClient.Count}"  Grid.Column="6" Grid.ColumnSpan="3"  Style="{DynamicResource S.TextBox.Label}"/>
+
+                                <Button Content="发送" Grid.Column="11" Width="Auto" Margin="2,0"  Command="{Binding UdpGroupClient.RelayCommand}" CommandParameter="Button.Click.ClientSend"/>
+
+                                <ComboBox ItemsSource="{Binding Encodings}" SelectedItem="{Binding UdpGroupClient.EncodingSend}" Grid.Column="9" Grid.ColumnSpan="2" Margin="2,0"/>
+                            </h:Row>
+                        </h:PropertyGrid.BottomContent>
+                    </h:PropertyGrid>
+
+                    
+                    <GroupBox Header="接收端" Padding="5">
+                        <DockPanel>
+                            <h:PropertyGrid SelectObject="{Binding UdpGroupClient.LocalParam}" DockPanel.Dock="Left" Padding="5" Style="{DynamicResource S.PropertyGrid.Single}" VerticalAlignment="Stretch">
+                                <h:PropertyGrid.BottomContent>
+                                    <h:Row Margin="10,6" DockPanel.Dock="Top" HorizontalAlignment="Right">
+                                        <DockPanel HorizontalAlignment="Center"  Grid.ColumnSpan="12">
+                                            <Button Content="开始监听" h:Cattach.IsBuzy="{Binding UdpGroupClient.IsRunning}" h:Cattach.BuzyText="正在监听" Margin="0,0,10,0" 
+                                            Command="{Binding UdpGroupClient.RelayCommand}" 
+                                            CommandParameter="Button.Click.ServerStart"/>
+                                            <Button Content="停止监听" IsEnabled="{Binding UdpGroupClient.IsRunning}" 
+                                            Command="{Binding UdpGroupClient.RelayCommand}" 
+                                            CommandParameter="Button.Click.ServerStop" />
+                                        </DockPanel>
+                                    </h:Row>
+                                </h:PropertyGrid.BottomContent>
+                            </h:PropertyGrid>
+
+                            <DockPanel>
+                                <ListBox Style="{DynamicResource S.ListBox.WrapPanelSelecter.Default}" 
+                                         SelectedItem="{Binding UdpGroupClient.Encoding}"
+                                         ItemsSource="{Binding Encodings}"
+                                         DockPanel.Dock="Bottom">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding BodyName}" ToolTip="{Binding EncodingName}"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+
+                                <GroupBox Header="接收数据" Style="{DynamicResource S.GroupBox.System}">
+                                    <ScrollViewer>
+                                        <ItemsControl ItemsSource="{Binding UdpGroupClient.ClientMessages}"/>
+                                    </ScrollViewer>
+                                </GroupBox>
+                            </DockPanel>
+                        </DockPanel>
+                    </GroupBox>
+                    
+                </DockPanel> 
+            </TabItem>
+        </TabControl>
+    </Grid>
+</h:MainWindowBase>
