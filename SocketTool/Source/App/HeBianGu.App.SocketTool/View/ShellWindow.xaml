@@ -9,7 +9,7 @@
                   xmlns:text="clr-namespace:System.Text;assembly=mscorlib"
                   Title="SocketTool"
                   Width="1100"
-                  Height="600"
+                  Height="700"
                   CaptionHeight="50"
                   DataContext="{Binding Source={StaticResource S.DataSource.Locator}, Path=ShellViewModel}"
                   NotifyIconSource="/HeBianGu.General.WpfControlLib;component/Resources/iBook.ico"
